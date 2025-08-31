@@ -1,0 +1,105 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include<conio.h>
+// Video metadata structure
+struct Video {
+    int id;
+    char subject[50];
+    char topic[50];
+    char duration[10];
+    char date[15];
+    char url[100];
+    struct Video *next;
+};
+
+// Queue structure using linked list
+struct Queue {
+    struct Video *front;
+    struct Video *rear;
+};
+
+// Initialize queue
+void initQueue(struct Queue *q) {
+    q->front = NULL;
+    q->rear = NULL;
+}
+
+// Enqueue video
+void enqueue(struct Queue *q, struct Video *v) {
+    v->next = NULL;
+    if (q->rear == NULL) {
+        q->front = q->rear = v;
+    } else {
+        q->rear->next = v;
+        q->rear = v;
+    }
+}
+
+// Dequeue video
+struct Video* dequeue(struct Queue *q) {
+    struct Video *temp;
+    if (q->front == NULL) return NULL;
+    temp = q->front;
+    q->front = q->front->next;
+    if (q->front == NULL) q->rear = NULL;
+    return temp;
+}
+
+// Find video by topic
+struct Video* findVideo(struct Video v[], int n, char topic[]) {
+    int i;
+    for (i = 0; i < n; i++) {
+        if (strcmp(v[i].topic, topic) == 0) return &v[i];
+    }
+    return NULL;
+}
+
+int main() {
+    int n, i;
+    struct Video videos[100];
+    char syllabus[500];
+    char *token;
+    struct Queue q;
+    struct Video *temp;
+
+    initQueue(&q);
+
+    printf("Enter number of video lectures: ");
+    scanf("%d", &n);
+
+    for (i = 0; i < n; i++) {
+	printf("\nEnter details for video %d\n", i+1);
+	printf("Video ID: "); scanf("%d", &videos[i].id);
+	printf("Subject: "); scanf("%s", videos[i].subject);
+	printf("Topic: "); scanf("%s", videos[i].topic);
+	printf("Duration: "); scanf("%s", videos[i].duration);
+	printf("Date: "); scanf("%s", videos[i].date);
+	printf("URL: "); scanf("%s", videos[i].url);
+    }
+
+    printf("\nEnter syllabus topics in order (separated by '-'): ");
+    scanf(" %[^\n]", syllabus); // read entire line
+
+    token = strtok(syllabus, "-");
+    while (token != NULL) {
+	struct Video *v = findVideo(videos, n, token);
+	if (v != NULL) enqueue(&q, v);
+	token = strtok(NULL, "-");
+    }
+
+    printf("\n--- Playing videos in syllabus order ---\n");
+
+    while ((temp = dequeue(&q)) != NULL) {
+	printf("\nVideo ID: %d\n", temp->id);
+	printf("Subject: %s\n", temp->subject);
+	printf("Topic: %s\n", temp->topic);
+	printf("Duration: %s\n", temp->duration);
+	printf("Date: %s\n", temp->date);
+	printf("URL: %s\n", temp->url);
+    }
+    getch();
+    clrscr();
+
+    return 0;
+}
