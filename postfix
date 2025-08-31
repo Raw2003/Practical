@@ -1,1 +1,62 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <string.h>
+#include<conio.h>
+
+#define MAX_SIZE 100
+
+typedef struct {
+    int data[MAX_SIZE];
+    int top;
+} Stack;
+
+void initStack(Stack *s)
+  {
+   s->top=-1;
+  }
+void push(Stack *s,int v)
+  {
+   s->data[++s->top]=v;
+  }
+int pop(Stack *s)
+  {
+   return s->top>=0 ? s->data[s->top--] : 0;
+  }
+
+int evaluatePostfix(char *arr[], int size){
+    int i; Stack s; initStack(&s);
+    for(i=0;i<size;i++){
+	char *t=arr[i];
+	if(isdigit(t[0]) || (t[0]=='-' && isdigit(t[1]))) push(&s, atoi(t));
+	else{
+	    int b=pop(&s), a=pop(&s);
+	    if(strcmp(t,"+")==0) push(&s,a+b);
+	    else if(strcmp(t,"-")==0) push(&s,a-b);
+	    else if(strcmp(t,"*")==0) push(&s,a*b);
+	    else if(strcmp(t,"/")==0) push(&s,a/b);
+	}
+    }
+    return pop(&s);
+}
+
+int main(){
+    int n, i;
+    char arr[MAX_SIZE][20]; // store tokens
+    char *ptr[MAX_SIZE];    // array of pointers
+
+    printf("Enter number of tokens in postfix expression: ");
+    scanf("%d",&n);
+
+    printf("Enter tokens (numbers/operators):\n");
+    for(i=0;i<n;i++){
+	scanf("%s", arr[i]);
+	ptr[i] = arr[i];
+    }
+
+    printf("Result = %d\n", evaluatePostfix(ptr,n));
+    getch();
+    clrscr();
+    return 0;
+}
 
