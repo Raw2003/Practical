@@ -1,0 +1,239 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <conio.h>
+
+struct Node {
+    int data;
+    struct Node* next;
+};
+
+struct Node* last = NULL;
+
+struct Node* createNode(int data) {
+    struct Node* newNode;
+    newNode = (struct Node*)malloc(sizeof(struct Node));
+    newNode->data = data;
+    newNode->next = NULL;
+    return newNode;
+}
+
+void insertBegin(int data) {
+    struct Node* newNode = createNode(data);
+    if (last == NULL) {
+        last = newNode;
+        newNode->next = newNode;
+    } else {
+        newNode->next = last->next;
+        last->next = newNode;
+    }
+    printf("Inserted %d at beginning\n", data);
+}
+
+void insertEnd(int data) {
+    struct Node* newNode = createNode(data);
+    if (last == NULL) {
+        last = newNode;
+        newNode->next = newNode;
+    } else {
+        newNode->next = last->next;
+        last->next = newNode;
+        last = newNode;
+    }
+    printf("Inserted %d at end\n", data);
+}
+
+void insertPos(int data, int pos) {
+    struct Node* newNode;
+    struct Node* temp;
+    int i;
+    
+    if (pos == 1) {
+        insertBegin(data);
+        return;
+    }
+    
+    if (last == NULL) {
+        printf("List is empty\n");
+        return;
+    }
+    
+    newNode = createNode(data);
+    temp = last->next;
+    
+    for (i = 1; i < pos - 1; i++) {
+        temp = temp->next;
+        if (temp == last->next) {
+            printf("Position out of range\n");
+            free(newNode);
+            return;
+        }
+    }
+    
+    newNode->next = temp->next;
+    temp->next = newNode;
+    if (temp == last) 
+        last = newNode;
+    
+    printf("Inserted %d at position %d\n", data, pos);
+}
+
+void deleteBegin() {
+    struct Node* first;
+    int data;
+    
+    if (last == NULL) {
+        printf("List is empty\n");
+        return;
+    }
+    
+    first = last->next;
+    data = first->data;
+    
+    if (last == first) {
+        free(first);
+        last = NULL;
+    } else {
+        last->next = first->next;
+        free(first);
+    }
+    printf("Deleted %d from beginning\n", data);
+}
+
+void deleteEnd() {
+    struct Node* temp;
+    int data;
+    
+    if (last == NULL) {
+        printf("List is empty\n");
+        return;
+    }
+    
+    data = last->data;
+    
+    if (last->next == last) {
+        free(last);
+        last = NULL;
+    } else {
+        temp = last->next;
+        while (temp->next != last)
+            temp = temp->next;
+        temp->next = last->next;
+        free(last);
+        last = temp;
+    }
+    printf("Deleted %d from end\n", data);
+}
+
+void deletePos(int pos) {
+    struct Node* temp;
+    struct Node* nodeToDelete;
+    int i, data;
+    
+    if (last == NULL) {
+        printf("List is empty\n");
+        return;
+    }
+    
+    if (pos == 1) {
+        deleteBegin();
+        return;
+    }
+    
+    temp = last->next;
+    for (i = 1; i < pos - 1; i++) {
+        temp = temp->next;
+        if (temp == last->next) {
+            printf("Position out of range\n");
+            return;
+        }
+    }
+    
+    nodeToDelete = temp->next;
+    data = nodeToDelete->data;
+    temp->next = nodeToDelete->next;
+    
+    if (nodeToDelete == last) 
+        last = temp;
+        
+    free(nodeToDelete);
+    printf("Deleted %d from position %d\n", data, pos);
+}
+
+void display() {
+    struct Node* temp;
+    
+    if (last == NULL) {
+        printf("List is empty\n");
+        return;
+    }
+    
+    printf("Circular List: ");
+    temp = last->next;
+    do {
+        printf("%d ", temp->data);
+        temp = temp->next;
+    } while (temp != last->next);
+    printf("\n");
+}
+
+void main() {
+    int choice, data, pos;
+    
+    clrscr();
+    
+    while (1) {
+        printf("\n=== CIRCULAR LINKED LIST ===\n");
+        printf("1. Insert at Beginning\n");
+        printf("2. Insert at End\n");
+        printf("3. Insert at Position\n");
+        printf("4. Delete from Beginning\n");
+        printf("5. Delete from End\n");
+        printf("6. Delete from Position\n");
+        printf("7. Display\n");
+        printf("8. Exit\n");
+        printf("Enter choice: ");
+        scanf("%d", &choice);
+        
+        switch (choice) {
+            case 1:
+                printf("Enter data: ");
+                scanf("%d", &data);
+                insertBegin(data);
+                break;
+            case 2:
+                printf("Enter data: ");
+                scanf("%d", &data);
+                insertEnd(data);
+                break;
+            case 3:
+                printf("Enter data: ");
+                scanf("%d", &data);
+                printf("Enter position: ");
+                scanf("%d", &pos);
+                insertPos(data, pos);
+                break;
+            case 4:
+                deleteBegin();
+                break;
+            case 5:
+                deleteEnd();
+                break;
+            case 6:
+                printf("Enter position: ");
+                scanf("%d", &pos);
+                deletePos(pos);
+                break;
+            case 7:
+                display();
+                break;
+            case 8:
+                printf("Exiting...\n");
+                getch();
+                exit(0);
+            default:
+                printf("Invalid choice!\n");
+        }
+        printf("Press any key to continue...");
+        getch();
+    }
+}
