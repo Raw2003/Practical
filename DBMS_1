@@ -1,0 +1,105 @@
+-- 1) Create orders table
+CREATE TABLE orders (
+    ord_no INT PRIMARY KEY,
+    purch_amt DECIMAL(10,2),
+    ord_date DATE,
+    customer_id INT,
+    salesman_id INT,
+    FOREIGN KEY (customer_id) REFERENCES customer(customer_id),
+    FOREIGN KEY (salesman_id) REFERENCES sales(salesman_id)
+);
+
+-- 2) Create sales table
+CREATE TABLE sales (
+    salesman_id INT PRIMARY KEY,
+    name VARCHAR(50),
+    no_of_products_sold INT,
+    sold_date DATE
+);
+
+-- 3) Create customer table
+CREATE TABLE customer (
+    customer_id INT PRIMARY KEY,
+    name VARCHAR(50),
+    phone_number VARCHAR(15),
+    purchased_product VARCHAR(50),
+    purchase_date DATE,
+    price DECIMAL(10,2)
+);
+
+-- 4) Create product table
+CREATE TABLE product (
+    prod_id INT PRIMARY KEY,
+    prod_name VARCHAR(50),
+    prod_price DECIMAL(10,2)
+);
+
+-- 5) Insert 5 rows in each table
+INSERT INTO sales VALUES
+(1,'Ravi',10,'2024-08-17'),
+(2,'Priya',15,'2024-08-17'),
+(3,'Amit',20,'2024-08-18'),
+(4,'Neha',12,'2024-08-19'),
+(5,'Arjun',18,'2024-08-20');
+
+INSERT INTO customer VALUES
+(101,'Sita','9876543210','Laptop','2024-08-17',55000),
+(102,'Ram','8765432109','Mobile','2024-08-17',20000),
+(103,'Mohan','7654321098','Tablet','2024-08-18',25000),
+(104,'Geeta','6543210987','Headphones','2024-08-19',4000),
+(105,'Radha','5432109876','Camera','2024-08-20',30000);
+
+INSERT INTO product VALUES
+(201,'Laptop',55000),
+(202,'Mobile',20000),
+(203,'Tablet',25000),
+(204,'Headphones',4000),
+(205,'Camera',30000);
+
+INSERT INTO orders VALUES
+(1001,55000,'2024-08-17',101,1),
+(1002,20000,'2024-08-17',102,2),
+(1003,25000,'2024-08-18',103,3),
+(1004,4000,'2024-08-19',104,4),
+(1005,30000,'2024-08-20',105,5);
+
+-- 6) Total Purchase Amount of All Orders
+SELECT SUM(purch_amt) AS total_purchase FROM orders;
+
+-- 7) Average Purchase Amount of All Orders
+SELECT AVG(purch_amt) AS avg_purchase FROM orders;
+
+-- 8) Count the Number of Unique Salespeople
+SELECT COUNT(DISTINCT salesman_id) AS unique_salespeople FROM orders;
+
+-- 9) Maximum Purchase Amount
+SELECT MAX(purch_amt) AS max_purchase FROM orders;
+
+-- 10) Minimum Purchase Amount
+SELECT MIN(purch_amt) AS min_purchase FROM orders;
+
+-- 11) Highest purchase amount made by each salesperson on '2024-08-17'
+SELECT salesman_id, MAX(purch_amt) AS max_purchase
+FROM orders
+WHERE ord_date='2024-08-17'
+GROUP BY salesman_id;
+
+-- 12) Highest order amount by each customer on a particular date with filter >2000
+SELECT customer_id, ord_date, MAX(purch_amt) AS max_purchase
+FROM orders
+GROUP BY customer_id, ord_date
+HAVING MAX(purch_amt) > 2000;
+
+-- 13) Count all orders generated on '2012-08-17'
+SELECT COUNT(*) AS total_orders
+FROM orders
+WHERE ord_date='2012-08-17';
+
+-- 14) Count products with price >= 350
+SELECT COUNT(*) AS products_high_price
+FROM product
+WHERE prod_price >= 350;
+
+-- 15) Delete a single record from customers (example: customer_id=101)
+DELETE FROM customer
+WHERE customer_id=101;
