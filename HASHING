@@ -1,0 +1,93 @@
+#include <stdio.h>
+#include<conio.h>
+int tableSize,nkeys,keys[100],hashTable[100];
+void accept_keys()
+{
+    int i;
+    printf("\n Enter the hash table size:");
+    scanf("%d",&tableSize);
+    printf("Enter number of keys:");
+    scanf("%d",&nkeys);
+    printf("Enter keys:\n");
+    for(i=0;i<nkeys;i++)
+    {
+        scanf("%d",&keys[i]);
+    }
+}
+void LinearProbing()
+{   int key,idx,start,placed,i;
+    for (i = 0; i < tableSize; i++)
+        hashTable[i] = -1;
+    for (i = 0; i < nkeys; i++) 
+        {
+        key = keys[i];
+        idx = key % tableSize;
+        start = idx;
+        placed = 0;
+        do {
+            if (hashTable[idx] == -1) 
+            {
+                hashTable[idx] = key;
+                placed = 1;
+                break;
+            }
+            idx = (idx + 1) % tableSize;
+        } while (idx != start);
+
+        if (placed==0)
+                printf("Table is full, cannot insert key %d\n", key);
+        }
+}
+void QuadraticProbing()
+{
+    int key, idx, i, placed,j,h;
+    for (i = 0; i < tableSize; i++)
+        hashTable[i] = -1;
+    for (i = 0; i < nkeys; i++) {
+        key = keys[i];
+        h = key % tableSize;
+        idx, j = 0;
+        placed = 0;
+
+        while (j < tableSize) 
+        {
+            idx = (h + (j * j)) % tableSize;
+            if (hashTable[idx] == -1)
+            {
+                hashTable[idx] = key;
+                placed = 1;
+                break;
+            }
+            j++;
+        }
+
+        if (placed==0)
+            printf("Table full, could not insert %d\n", key);
+    }
+}
+
+void display()
+{
+    int i;
+for (i = 0; i < tableSize; i++) 
+{
+        if (hashTable[i] == -1)
+            printf("Index %d : EMPTY\n", i);
+        else
+            printf("Index %d : %d\n", i, hashTable[i]);
+    }
+}
+int main()
+{
+    clrscr();
+    accept_keys();
+    printf("Hashing using Linear Probing:\n");
+    LinearProbing();
+    display();
+    accept_keys();
+    printf("Hashing using Quadratic Probing:\n");
+    QuadraticProbing();
+    display();
+    getch();
+    return 0;
+}
