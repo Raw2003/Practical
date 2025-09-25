@@ -1,0 +1,255 @@
+--------------------------------------------------------
+-- LAB DATABASE SQL (Musicians, Students, Salesman/Orders)
+-- Ready for SQL*Plus or GitHub upload
+--------------------------------------------------------
+
+--------------------------------------------------------
+-- SECTION 1: MUSICIANS DATABASE
+--------------------------------------------------------
+
+CREATE TABLE band (
+  band_no NUMBER PRIMARY KEY,
+  band_name VARCHAR2(50),
+  band_home VARCHAR2(50),
+  band_type VARCHAR2(30),
+  b_date DATE,
+  band_contact VARCHAR2(50)
+);
+
+CREATE TABLE composer (
+  comp_no NUMBER PRIMARY KEY,
+  comp_is VARCHAR2(50),
+  comp_type VARCHAR2(30)
+);
+
+CREATE TABLE composition (
+  c_no NUMBER PRIMARY KEY,
+  comp_date DATE,
+  c_title VARCHAR2(100),
+  c_in NUMBER REFERENCES composer(comp_no)
+);
+
+CREATE TABLE concert (
+  concert_no NUMBER PRIMARY KEY,
+  concert_venue VARCHAR2(50),
+  concert_in NUMBER,
+  con_date DATE,
+  concert_orgniser VARCHAR2(50)
+);
+
+CREATE TABLE musician (
+  m_no NUMBER PRIMARY KEY,
+  m_name VARCHAR2(50),
+  born DATE,
+  died DATE,
+  born_in VARCHAR2(50),
+  living_in VARCHAR2(50)
+);
+
+CREATE TABLE performer (
+  perf_no NUMBER PRIMARY KEY,
+  perf_is NUMBER REFERENCES musician(m_no),
+  instrument VARCHAR2(30),
+  perf_type VARCHAR2(30)
+);
+
+CREATE TABLE performance (
+  pfrmnc_no NUMBER PRIMARY KEY,
+  gave NUMBER,
+  performed NUMBER,
+  conducted_by NUMBER REFERENCES musician(m_no),
+  performed_in NUMBER REFERENCES concert(concert_no)
+);
+
+CREATE TABLE place (
+  place_no NUMBER PRIMARY KEY,
+  place_town VARCHAR2(50),
+  place_country VARCHAR2(50)
+);
+
+CREATE TABLE plays_in (
+  player NUMBER,
+  band_id NUMBER
+);
+
+-- Sample Data
+INSERT INTO musician VALUES (1, 'Andy Jones', DATE '1970-05-12', NULL, 'England', 'USA');
+INSERT INTO musician VALUES (2, 'John Smith', DATE '1960-03-14', NULL, 'USA', 'USA');
+INSERT INTO composer VALUES (1, 'Andy Jones', 'Classical');
+INSERT INTO composition VALUES (10, DATE '1995-07-10', 'Symphony One', 1);
+INSERT INTO concert VALUES (100, 'Assembly Rooms', 1, DATE '1998-02-15', 'Michael Brown');
+INSERT INTO performer VALUES (200, 1, 'guitar', 'solo');
+INSERT INTO performer VALUES (201, 2, 'violin', 'orchestra');
+INSERT INTO performance VALUES (300, 1, 10, 2, 100);
+INSERT INTO place VALUES (1, 'New York', 'USA');
+
+--------------------------------------------------------
+-- SECTION 2: STUDENT DATABASE
+--------------------------------------------------------
+
+CREATE TABLE student (
+  student_no NUMBER PRIMARY KEY,
+  student_name VARCHAR2(50)
+);
+
+CREATE TABLE module (
+  module_code VARCHAR2(10) PRIMARY KEY,
+  module_name VARCHAR2(50),
+  leader_id NUMBER
+);
+
+CREATE TABLE leader (
+  leader_id NUMBER PRIMARY KEY,
+  leader_name VARCHAR2(50),
+  leader_email VARCHAR2(50)
+);
+
+CREATE TABLE student_module (
+  student_no NUMBER REFERENCES student(student_no),
+  module_code VARCHAR2(10) REFERENCES module(module_code),
+  session VARCHAR2(10),
+  term VARCHAR2(10)
+);
+
+CREATE TABLE feedback (
+  student_no NUMBER,
+  module_code VARCHAR2(10),
+  session VARCHAR2(10),
+  term VARCHAR2(10),
+  response NUMBER
+);
+
+-- Sample Data
+INSERT INTO student VALUES (50200100, 'Alice');
+INSERT INTO module VALUES ('SET08108', 'Database Systems', 1);
+INSERT INTO leader VALUES (1, 'Dr. Brown', 'brown@uni.edu');
+INSERT INTO student_module VALUES (50200100, 'SET08108', '2016/7', 'TR1');
+INSERT INTO feedback VALUES (50200100, 'SET08108', '2016/7', 'TR1', 4);
+
+--------------------------------------------------------
+-- SECTION 3: SALESMAN / ORDERS / CUSTOMERS
+--------------------------------------------------------
+
+CREATE TABLE salesman (
+  salesman_id NUMBER PRIMARY KEY,
+  name VARCHAR2(50),
+  city VARCHAR2(50),
+  commission NUMBER(4,2)
+);
+
+CREATE TABLE customer (
+  customer_id NUMBER PRIMARY KEY,
+  cust_name VARCHAR2(50),
+  city VARCHAR2(50),
+  grade NUMBER,
+  salesman_id NUMBER REFERENCES salesman(salesman_id)
+);
+
+CREATE TABLE orders (
+  order_no NUMBER PRIMARY KEY,
+  purch_amt NUMBER(10,2),
+  order_date DATE,
+  customer_id NUMBER REFERENCES customer(customer_id),
+  salesman_id NUMBER REFERENCES salesman(salesman_id)
+);
+
+-- Sample Data
+INSERT INTO salesman VALUES (1, 'Paul Adams', 'Paris', 0.13);
+INSERT INTO salesman VALUES (2, 'John Miller', 'New York', 0.14);
+INSERT INTO customer VALUES (101, 'ABC Corp', 'New York', 200, 1);
+INSERT INTO customer VALUES (102, 'XYZ Ltd', 'Paris', 150, 2);
+INSERT INTO orders VALUES (1001, 5000, DATE '2012-08-17', 101, 1);
+INSERT INTO orders VALUES (1002, 7000, DATE '2012-08-17', 102, 2);
+
+--------------------------------------------------------
+-- SECTION 4: QUERIES
+--------------------------------------------------------
+
+-- Q1
+SELECT concert_orgniser FROM concert
+WHERE concert_venue = 'Assembly Rooms' AND con_date > DATE '1997-02-01';
+
+-- Q2
+SELECT m.m_name, p.instrument
+FROM performer p
+JOIN musician m ON p.perf_is = m.m_no
+WHERE p.instrument IN ('guitar','violin') AND m.born_in = 'England';
+
+-- Q3
+SELECT m.m_name, pl.place_town, c.con_date
+FROM musician m
+JOIN performance pf ON m.m_no = pf.conducted_by
+JOIN concert c ON pf.performed_in = c.concert_no
+JOIN place pl ON c.concert_in = pl.place_no
+WHERE pl.place_country = 'USA';
+
+-- Q4
+SELECT c.con_date, c.concert_venue, comp.c_title
+FROM concert c
+JOIN performance pf ON c.concert_no = pf.performed_in
+JOIN composition comp ON pf.performed = comp.c_no
+JOIN composer cm ON comp.c_in = cm.comp_no
+WHERE cm.comp_is = 'Andy Jones';
+
+-- Q5
+SELECT instrument, COUNT(perf_is) AS total_players
+FROM performer
+GROUP BY instrument;
+
+-- Q6
+SELECT student_name FROM student WHERE student_no = 50200100;
+
+-- Q7
+SELECT m.module_code, m.module_name
+FROM module m
+JOIN student_module sm ON m.module_code = sm.module_code
+WHERE sm.student_no = 50200100 AND sm.session='2016/7' AND sm.term='TR1';
+
+-- Q8
+SELECT m.module_code, m.module_name, l.leader_name, l.leader_email
+FROM module m
+JOIN leader l ON m.leader_id=l.leader_id
+JOIN student_module sm ON m.module_code=sm.module_code
+WHERE sm.student_no=50200100 AND sm.session='2016/7' AND sm.term='TR1';
+
+-- Q9
+SELECT response, COUNT(*) AS num_students
+FROM feedback
+WHERE module_code='SET08108' AND session='2016/7' AND term='TR1'
+GROUP BY response;
+
+-- Q10
+SELECT name, commission FROM salesman;
+
+-- Q11
+SELECT DISTINCT salesman_id FROM orders;
+
+-- Q12
+SELECT name, city FROM salesman WHERE city='Paris';
+
+-- Q13
+SELECT * FROM customer WHERE grade=200;
+
+-- Q14
+SELECT * FROM customer WHERE city='New York' OR grade>100;
+
+-- Q15
+SELECT * FROM salesman WHERE commission BETWEEN 0.12 AND 0.14;
+
+-- Q16
+SELECT SUM(purch_amt) AS total_purchase FROM orders;
+
+-- Q17
+SELECT salesman_id, COUNT(DISTINCT customer_id) AS num_customers
+FROM customer GROUP BY salesman_id;
+
+-- Q18
+SELECT city, MAX(grade) AS highest_grade FROM customer GROUP BY city;
+
+-- Q19
+SELECT customer_id, MAX(purch_amt) AS highest_purchase
+FROM orders GROUP BY customer_id;
+
+-- Q20
+SELECT COUNT(*) AS total_orders FROM orders
+WHERE order_date = DATE '2012-08-17';
