@@ -1,0 +1,59 @@
+/*
+  BFS Shortest Path (1-indexed) - Turbo C++
+  Author: Anjan Singh
+  Finds shortest path between start and end in an unweighted graph.
+*/
+
+#include <stdio.h>
+#include <conio.h>
+#define MAX 20
+
+int g[MAX][MAX], visited[MAX], parent[MAX], q[MAX], f, r;
+
+// BFS function
+void bfs(int n, int start, int end) {
+    int i, node, path[MAX], len=0, v;
+
+    // Initialize
+    for(i=1;i<=n;i++) { visited[i]=0; parent[i]=-1; }
+    f=0; r=0; visited[start]=1; q[r++]=start;
+
+    // BFS loop
+    while(f<r) {
+        node=q[f++];
+        if(node==end) break;
+        for(i=1;i<=n;i++)
+            if(g[node][i] && !visited[i]) {
+                visited[i]=1;
+                parent[i]=node;
+                q[r++]=i;
+            }
+    }
+
+    // Check if path exists
+    if(!visited[end]) { printf("\nNo path found\n"); return; }
+
+    // Reconstruct path
+    for(v=end; v!=-1; v=parent[v]) path[len++]=v;
+
+    // Print path
+    printf("\nShortest Path: ");
+    for(i=len-1;i>=0;i--) printf("%d ", path[i]);
+    printf("\n");
+}
+
+void main() {
+    int n,i,j,start,end;
+    clrscr();
+
+    printf("Vertices: "); scanf("%d",&n);
+    printf("Adjacency matrix (%dx%d):\n", n, n);
+    for(i=1;i<=n;i++)
+        for(j=1;j<=n;j++) scanf("%d",&g[i][j]);
+
+    printf("Start node: "); scanf("%d",&start);
+    printf("End node: "); scanf("%d",&end);
+
+    bfs(n,start,end);
+    getch();
+}
