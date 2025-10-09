@@ -1,0 +1,106 @@
+USE lab2;
+
+-- EMPLOYEE TABLE
+CREATE TABLE employee (
+    emp_id INT PRIMARY KEY,
+    first_name VARCHAR(30),
+    last_name VARCHAR(30),
+    department VARCHAR(30),
+    job_title VARCHAR(40),
+    salary DECIMAL(10,2),
+    hire_date DATE
+);
+
+INSERT INTO employee VALUES
+(1, 'Kingshuk', 'Pal', 'Sales', 'Sales Manager', 56000, '2018-04-10'),
+(2, 'Shubhronil', 'Dutta', 'HR', 'HR Executive', 41000, '2021-07-15'),
+(3, 'Dipyaman', 'Mukherjee', 'IT', 'Software Engineer', 60500, '2019-02-20'),
+(4, 'Suagata', 'Mandal', 'Marketing', 'Marketing Analyst', 46000, '2023-01-10'),
+(5, 'Akash', 'Pal', 'Sales', 'Sales Executive', 33000, '2020-06-05'),
+(6, 'Daivik', 'Dev', 'Finance', 'Finance Manager', 72000, '2015-11-11'),
+(7, 'Hritesh', 'Das', 'IT', 'Project Manager', 65500, '2017-05-24');
+
+DROP TABLE IF EXISTS student;
+
+-- STUDENT TABLE
+CREATE TABLE student (
+    stud_id INT PRIMARY KEY,
+    first_name VARCHAR(30),
+    last_name VARCHAR(30),
+    course_name VARCHAR(30),
+    city VARCHAR(30),
+    dob DATE,
+    join_date DATE
+);
+
+INSERT INTO student VALUES
+(1, 'Rahul', 'Gupta','Mathematics','Delhi', '2002-03-12', '2022-09-01'),
+(2, 'Puppy', 'Tiwari','Zoology','Mumbai', '2001-07-18', '2023-02-15'),
+(3, 'Sumit', 'Keera','Physics','Odisha', '2003-11-05', '2024-01-10'),
+(4, 'Vishnu', 'Hulk','Business','Chennai', '2002-05-21', '2021-08-12'),
+(5, 'Arnab', 'Giri','Computer Science','Kolkata', '2000-09-09', '2020-06-30');
+
+-- SIMPLE QUERIES
+SELECT emp_id, first_name, salary + (0.15 * salary) AS Total_Salary FROM employee;
+SELECT stud_id, first_name, 4 * 42000 AS Total_Fees FROM student;
+SELECT CONCAT(first_name, ' ', last_name) AS Full_Name FROM student;
+SELECT CONCAT(first_name, ' ', last_name) AS Full_Name, LENGTH(first_name) + LENGTH(last_name) AS Name_Length FROM student;
+SELECT course_name, UPPER(course_name) AS Upper_Case, LOWER(course_name) AS Lower_Case FROM student;
+SELECT CURRENT_DATE() AS Today;
+SELECT first_name, YEAR(dob) AS Birth_Year, MONTH(dob) AS Birth_Month, DAY(dob) AS Birth_Day FROM student;
+SELECT stud_id, DATEDIFF(CURRENT_DATE(), join_date) AS Days_Since_Join FROM student;
+
+-- CONDITIONAL QUERIES
+SELECT * FROM student WHERE YEAR(join_date) >= 2023;
+SELECT * FROM employee WHERE salary > (SELECT AVG(salary) FROM employee);
+SELECT * FROM employee WHERE salary BETWEEN 32000 AND 65000;
+SELECT * FROM employee WHERE department <> 'HR';
+SELECT * FROM employee WHERE job_title LIKE '%Manager%' AND YEAR(hire_date) <= 2020;
+SELECT department, COUNT(*) AS Dept_Count 
+FROM employee 
+WHERE salary > (SELECT AVG(salary) FROM employee) 
+GROUP BY department;
+
+SELECT * FROM employee 
+WHERE (YEAR(hire_date) BETWEEN 2016 AND 2020 AND department = 'Sales') 
+   OR department = 'Marketing';
+
+-- PRODUCTS TABLE
+CREATE TABLE products (
+    product_id INT PRIMARY KEY,
+    product_name VARCHAR(40),
+    price DECIMAL(10,2),
+    launch_year INT
+);
+
+INSERT INTO products VALUES
+(1, 'Apple Watch', 360, 2023),
+(2, 'AirPods', 190, 2024),
+(3, 'Asus Laptop', 740, 2022),
+(4, 'HP Monitor', 130, 2024),
+(5, 'Acer Keyboard', 85, 2023),
+(6, 'Dell Mouse', 55, 2024),
+(7, 'iPhone 14', 999, 2023);
+
+SELECT * FROM products WHERE price > (SELECT AVG(price) FROM products);
+SELECT * FROM products WHERE product_name LIKE 'A%' AND price <= 100;
+SELECT * FROM products WHERE price > (SELECT AVG(price) FROM products WHERE launch_year = 2024);
+
+-- CUSTOMERS TABLE
+CREATE TABLE customers (
+    cust_id INT PRIMARY KEY,
+    cust_name VARCHAR(50),
+    city VARCHAR(30),
+    total_orders INT,
+    total_order_value DECIMAL(10,2)
+);
+
+INSERT INTO customers VALUES
+(1, 'Rohit Mondal', 'New York', 3, 1550.00),
+(2, 'Priya Das', 'Los Angeles', 2, 190.00),
+(3, 'Gauranga Das', 'Chicago', 1, 750.00),
+(4, 'Salil Koner', 'Austin', 5, 1950.00),
+(5, 'Akash Mahato', 'Boston', 2, 410.00);
+
+SELECT * FROM customers WHERE city IN ('New York', 'Los Angeles');
+SELECT * FROM customers WHERE total_order_value > (SELECT AVG(total_order_value) FROM customers);
