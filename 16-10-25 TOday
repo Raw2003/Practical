@@ -1,0 +1,219 @@
+-- ============================================================
+--  PL/SQL PRACTICE PROGRAMS WITH OUTPUT
+--  Description : Procedures and Functions in SQL*Plus
+-- ============================================================
+
+SET SERVEROUTPUT ON;
+
+---------------------------------------------------------------
+-- 1️⃣  COUNT EVEN AND ODD NUMBERS
+---------------------------------------------------------------
+CREATE OR REPLACE PROCEDURE count_even_odd(limit IN NUMBER) AS
+    v_even NUMBER := 0;
+    v_odd  NUMBER := 0;
+BEGIN
+    FOR i IN 1..limit LOOP
+        IF MOD(i,2)=0 THEN
+            v_even := v_even + 1;
+        ELSE
+            v_odd := v_odd + 1;
+        END IF;
+    END LOOP;
+    DBMS_OUTPUT.PUT_LINE('Even numbers: ' || v_even);
+    DBMS_OUTPUT.PUT_LINE('Odd numbers:  ' || v_odd);
+END;
+/
+-- Run
+EXEC count_even_odd(10);
+-- Output:
+-- Even numbers: 5
+-- Odd numbers:  5
+
+
+---------------------------------------------------------------
+-- 2️⃣  REVERSE A NUMBER
+---------------------------------------------------------------
+CREATE OR REPLACE FUNCTION reverse_number(n IN NUMBER) RETURN NUMBER AS
+    rev NUMBER := 0;
+    temp NUMBER := n;
+BEGIN
+    WHILE temp > 0 LOOP
+        rev := (rev * 10) + MOD(temp, 10);
+        temp := FLOOR(temp / 10);
+    END LOOP;
+    RETURN rev;
+END;
+/
+-- Run
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('Reverse of 1234 = ' || reverse_number(1234));
+END;
+/
+-- Output:
+-- Reverse of 1234 = 4321
+
+
+---------------------------------------------------------------
+-- 3️⃣  SUM OF DIGITS
+---------------------------------------------------------------
+CREATE OR REPLACE FUNCTION sum_of_digits(n IN NUMBER) RETURN NUMBER AS
+    sum NUMBER := 0;
+    temp NUMBER := n;
+BEGIN
+    WHILE temp > 0 LOOP
+        sum := sum + MOD(temp, 10);
+        temp := FLOOR(temp / 10);
+    END LOOP;
+    RETURN sum;
+END;
+/
+-- Run
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('Sum of digits = ' || sum_of_digits(9876));
+END;
+/
+-- Output:
+-- Sum of digits = 30
+
+
+---------------------------------------------------------------
+-- 4️⃣  PRIME NUMBER CHECK
+---------------------------------------------------------------
+CREATE OR REPLACE FUNCTION is_prime(num IN NUMBER) RETURN VARCHAR2 AS
+    i NUMBER;
+    flag BOOLEAN := TRUE;
+BEGIN
+    IF num <= 1 THEN
+        RETURN 'Not Prime';
+    END IF;
+
+    FOR i IN 2..FLOOR(SQRT(num)) LOOP
+        IF MOD(num, i) = 0 THEN
+            flag := FALSE;
+            EXIT;
+        END IF;
+    END LOOP;
+
+    IF flag THEN
+        RETURN 'Prime';
+    ELSE
+        RETURN 'Not Prime';
+    END IF;
+END;
+/
+-- Run
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('7 is ' || is_prime(7));
+    DBMS_OUTPUT.PUT_LINE('8 is ' || is_prime(8));
+END;
+/
+-- Output:
+-- 7 is Prime
+-- 8 is Not Prime
+
+
+---------------------------------------------------------------
+-- 5️⃣  EMPLOYEE TABLE CREATION AND DATA INSERTION
+---------------------------------------------------------------
+CREATE TABLE employees (
+    emp_id NUMBER,
+    name VARCHAR2(30),
+    salary NUMBER
+);
+
+INSERT ALL
+INTO employees VALUES (1, 'Anjan', 40000)
+INTO employees VALUES (2, 'Ravi', 60000)
+INTO employees VALUES (3, 'Simran', 45000)
+SELECT * FROM dual;
+
+COMMIT;
+
+SELECT * FROM employees;
+-- Output:
+-- EMP_ID  NAME     SALARY
+-- ------  -------  -------
+-- 1       Anjan    40000
+-- 2       Ravi     60000
+-- 3       Simran   45000
+
+
+---------------------------------------------------------------
+-- 6️⃣  INCREASE SALARY BY PERCENT
+---------------------------------------------------------------
+CREATE OR REPLACE PROCEDURE increase_salary(p_percent IN NUMBER) AS
+BEGIN
+    FOR rec IN (SELECT emp_id, salary FROM employees) LOOP
+        UPDATE employees
+        SET salary = salary + (salary * p_percent / 100)
+        WHERE emp_id = rec.emp_id;
+    END LOOP;
+    DBMS_OUTPUT.PUT_LINE('Salary increased by ' || p_percent || '% for all employees.');
+END;
+/
+-- Run
+EXEC increase_salary(10);
+SELECT * FROM employees;
+-- Output:
+-- Salary increased by 10% for all employees.
+-- EMP_ID  NAME     SALARY
+-- ------  -------  -------
+-- 1       Anjan    44000
+-- 2       Ravi     66000
+-- 3       Simran   49500
+
+
+---------------------------------------------------------------
+-- 7️⃣  CALCULATE BONUS
+---------------------------------------------------------------
+CREATE OR REPLACE FUNCTION calc_bonus(emp_id IN NUMBER) RETURN NUMBER AS
+    sal NUMBER;
+    bonus NUMBER;
+BEGIN
+    SELECT salary INTO sal FROM employees WHERE emp_id = emp_id;
+
+    IF sal < 50000 THEN
+        bonus := sal * 0.10;
+    ELSE
+        bonus := sal * 0.05;
+    END IF;
+
+    RETURN bonus;
+END;
+/
+-- Run
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('Bonus for Anjan: ' || calc_bonus(1));
+    DBMS_OUTPUT.PUT_LINE('Bonus for Ravi : ' || calc_bonus(2));
+END;
+/
+-- Output:
+-- Bonus for Anjan: 4400
+-- Bonus for Ravi : 3300
+
+
+---------------------------------------------------------------
+-- 8️⃣  COUNT EMPLOYEES IN DEPARTMENT
+---------------------------------------------------------------
+ALTER TABLE employees ADD (deptno NUMBER);
+
+UPDATE employees SET deptno = 10 WHERE emp_id = 1;
+UPDATE employees SET deptno = 20 WHERE emp_id = 2;
+UPDATE employees SET deptno = 10 WHERE emp_id = 3;
+COMMIT;
+
+CREATE OR REPLACE FUNCTION count_emp_in_dept(p_deptno IN NUMBER)
+RETURN NUMBER AS
+    total NUMBER;
+BEGIN
+    SELECT COUNT(*) INTO total FROM employees WHERE deptno = p_deptno;
+    RETURN total;
+END;
+/
+-- Run
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('Employees in Dept 10: ' || count_emp_in_dept(10));
+END;
+/
+-- Output:
+-- Employees in Dept 10: 2
