@@ -1,0 +1,145 @@
+-- ============================================================
+-- SALES DATA ANALYSIS PROJECT
+-- Platform: Oracle SQL*Plus
+-- Description: Analytical SQL queries using sales_data table
+-- ============================================================
+
+SET SERVEROUTPUT ON;
+PROMPT ==== SALES DATA ANALYSIS STARTED ====
+
+---------------------------------------------------------------
+-- 1️⃣ CREATE TABLE AND INSERT DATA
+---------------------------------------------------------------
+DROP TABLE sales_data PURGE;
+
+CREATE TABLE sales_data (
+    emp_name VARCHAR2(50),
+    month    VARCHAR2(10),
+    sales    NUMBER
+);
+
+INSERT ALL
+INTO sales_data VALUES ('Anjan', 'Jan', 12000)
+INTO sales_data VALUES ('Anjan', 'Feb', 15000)
+INTO sales_data VALUES ('Anjan', 'Mar', 18000)
+INTO sales_data VALUES ('Ravi',  'Jan', 10000)
+INTO sales_data VALUES ('Ravi',  'Feb', 12000)
+INTO sales_data VALUES ('Ravi',  'Mar', 16000)
+INTO sales_data VALUES ('Simran','Jan', 8000)
+INTO sales_data VALUES ('Simran','Feb', 9000)
+INTO sales_data VALUES ('Simran','Mar', 9500)
+SELECT * FROM dual;
+
+COMMIT;
+
+PROMPT ===== TABLE: SALES_DATA =====
+SELECT * FROM sales_data ORDER BY emp_name, month;
+
+---------------------------------------------------------------
+-- 2️⃣ RANK EMPLOYEES BY TOTAL SALES
+---------------------------------------------------------------
+PROMPT ===== 1. RANK EMPLOYEES BY TOTAL SALES =====
+SELECT emp_name,
+       SUM(sales) AS total_sales,
+       RANK() OVER (ORDER BY SUM(sales) DESC) AS rank_position
+FROM sales_data
+GROUP BY emp_name;
+
+-- Expected Output:
+-- EMP_NAME  TOTAL_SALES  RANK_POSITION
+-- Anjan     45000        1
+-- Ravi      38000        2
+-- Simran    26500        3
+
+---------------------------------------------------------------
+-- 3️⃣ CURRENT MONTH, PREVIOUS MONTH, AND DIFFERENCE
+---------------------------------------------------------------
+PROMPT ===== 2. CURRENT vs PREVIOUS MONTH SALES =====
+SELECT emp_name,
+       month,
+       sales AS current_month_sales,
+       LAG(sales) OVER (PARTITION BY emp_name ORDER BY month) AS previous_month_sales,
+       (sales - LAG(sales) OVER (PARTITION BY emp_name ORDER BY month)) AS difference
+FROM sales_data
+ORDER BY emp_name, month;
+
+-- Expected Output:
+-- EMP_NAME  MONTH  CURRENT  PREV  DIFFERENCE
+-- Anjan     Jan    12000   NULL    NULL
+-- Anjan     Feb    15000   12000   3000
+-- ...
+
+---------------------------------------------------------------
+-- 4️⃣ PROGRESSIVE (RUNNING TOTAL) SALES BY MONTH
+---------------------------------------------------------------
+PROMPT ===== 3. PROGRESSIVE SALES BY MONTH =====
+SELECT emp_name,
+       month,
+       sales,
+       SUM(sales) OVER (PARTITION BY emp_name ORDER BY month) AS progressive_total
+FROM sales_data
+ORDER BY emp_name, month;
+
+-- Expected Output:
+-- Anjan Jan 12000 12000
+-- Anjan Feb 15000 27000
+-- Anjan Mar 18000 45000
+-- ...
+
+---------------------------------------------------------------
+-- 5️⃣ AVERAGE SALES TILL CURRENT MONTH
+---------------------------------------------------------------
+PROMPT ===== 4. AVERAGE SALES TILL CURRENT MONTH =====
+SELECT emp_name,
+       month,
+       sales,
+       ROUND(AVG(sales) OVER (
+           PARTITION BY emp_name ORDER BY month
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ), 2) AS avg_till_now
+FROM sales_data
+ORDER BY emp_name, month;
+
+-- Expected Output:
+-- EMP_NAME  MONTH  SALES  AVG_TILL_NOW
+-- Anjan     Jan    12000  12000.00
+-- Anjan     Feb    15000  13500.00
+-- Anjan     Mar    18000  15000.00
+-- ...
+
+---------------------------------------------------------------
+-- 6️⃣ PERCENTAGE CONTRIBUTION OF EACH EMPLOYEE
+---------------------------------------------------------------
+PROMPT ===== 5. PERCENTAGE CONTRIBUTION TO COMPANY TOTAL =====
+SELECT emp_name,
+       SUM(sales) AS total_sales,
+       ROUND(SUM(sales) * 100 / (SELECT SUM(sales) FROM sales_data), 2) AS pct_contribution
+FROM sales_data
+GROUP BY emp_name
+ORDER BY pct_contribution DESC;
+
+-- Expected Output:
+-- EMP_NAME  TOTAL_SALES  PCT_CONTRIBUTION
+-- Anjan     45000        40.91
+-- Ravi      38000        34.55
+-- Simran    26500        24.09
+
+---------------------------------------------------------------
+-- 7️⃣ COMPANY’S TOTAL SALES GROWTH MONTH BY MONTH
+---------------------------------------------------------------
+PROMPT ===== 6. COMPANY TOTAL SALES GROWTH =====
+SELECT month,
+       SUM(sales) AS total_sales,
+       LAG(SUM(sales)) OVER (ORDER BY month) AS prev_month_sales,
+       (SUM(sales) - LAG(SUM(sales)) OVER (ORDER BY month)) AS increase
+FROM sales_data
+GROUP BY month
+ORDER BY month;
+
+-- Expected Output:
+-- MONTH  TOTAL_SALES  PREV_MONTH_SALES  INCREASE
+-- Jan    30000        NULL              NULL
+-- Feb    36000        30000             6000
+-- Mar    43500        36000             7500
+
+PROMPT ==== SALES DATA ANALYSIS COMPLETED SUCCESSFULLY ====
